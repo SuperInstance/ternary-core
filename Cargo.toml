@@ -1,0 +1,8 @@
+[package]
+name = "ternary-core"
+version = "0.1.0"
+edition = "2021"
+description = "Core traits and types shared across the ternary fleet — TernaryValue, TernaryGrid, TernaryGraph, and common utilities"
+license = "MIT"
+
+[dependencies]
