@@ -1,84 +1,90 @@
 # ternary-core
 
-**The foundation. Shared traits, Z₃ arithmetic, grids, and graphs for the entire ternary fleet.**
+**# ternary-core  Core traits and types shared across the ternary fleet**
 
-Every building needs a foundation. `ternary-core` is the bedrock of the SuperInstance ternary fleet — the shared abstractions that every other ternary crate builds on. Instead of every crate reimplementing Z₃ arithmetic, grid operations, and graph algorithms, they import from here.
+[![ternary](https://img.shields.io/badge/ecosystem-ternary-blue)](https://github.com/orgs/SuperInstance/repositories?q=ternary)
+[![tests](https://img.shields.io/badge/tests-19-green)]()
 
-This crate defines the algebraic primitives (`tadd`, `tsub`, `tmul`, `tneg`, `tinv`), the core types (`TernaryGrid`, `TernaryGraph`), and the universal traits (`TernaryValue`, `TernaryDynamics`, `TernaryMeasure`) that make the fleet a coherent system rather than 240 independent repos.
+## Overview
 
-## What's Inside
+# ternary-core
 
-### Z₃ Arithmetic
-- **`tadd(a, b)`** — addition modulo 3: 1+1 = -1, -1+-1 = 1
-- **`tsub(a, b)`** — subtraction modulo 3
-- **`tmul(a, b)`** — multiplication modulo 3: -1×-1 = 1, 1×-1 = -1
-- **`tneg(a)`** — negation: 1↔-1, 0↔0
-- **`tinv(a)`** — multiplicative inverse: 1⁻¹=1, -1⁻¹=-1, 0 has no inverse
-- **`tdist(a, b)`** — modular distance on Z₃ circle
-- **`tdot(a, b)`** — inner product of ternary vectors mod 3
+Core traits and types shared across the ternary fleet.
+Every ternary crate should depend on this for common abstractions:
+`TernaryValue`, `TernaryGrid`, `TernaryGraph`, and Z₃ arithmetic.
 
-### Types
-- **`TernaryGrid`** — 2D grid with get/set, histogram, map, zip_with, Laplacian, neighbor counting, BFS-ready
-- **`TernaryGraph`** — weighted graph with ternary edges, BFS, connectivity, components
-- **`TernaryValue`** — trait for types that map to {-1, 0, 1}
+## Architecture
+
+- **`TernaryGrid`** — core data structure
+- **`TernaryGraph`** — core data structure
 
 ### Traits
-- **`TernaryDynamics`** — for systems that evolve in discrete steps
-- **`TernaryMeasure`** — for anything that produces a ternary summary
 
-## Quick Example
+- **`TernaryValue`** — shared behavior contract
+- **`TernaryDynamics`** — shared behavior contract
+- **`TernaryMeasure`** — shared behavior contract
 
-```rust
-use ternary_core::*;
+### Key Functions
 
-// Z₃ arithmetic
-assert_eq!(tadd(1, 1), -1);   // 1+1 = 2 ≡ -1 mod 3
-assert_eq!(tmul(-1, -1), 1);  // -1 × -1 = 1
-assert_eq!(tinv(0), None);     // zero has no inverse
+- `tadd()`
+- `tsub()`
+- `tmul()`
+- `tneg()`
+- `tinv()`
+- `tclamp()`
+- `tdist()`
+- `tdot()`
+- `new()`
+- `get()`
+- ... and 21 more
 
-// Grid operations
-let mut grid = TernaryGrid::new(5, 5);
-grid.set(2, 2, 1);
-let (neg, zero, pos) = grid.histogram();
+## Why Ternary?
 
-// Graph operations
-let mut graph = TernaryGraph::new(4);
-graph.add_undirected(0, 1, 1);
-graph.add_undirected(1, 2, 1);
-assert!(graph.is_connected());
+The balanced ternary system {-1, 0, +1} (also known as Z₃) is the mathematically optimal discrete encoding:
+- **More expressive than binary**: three states capture positive, neutral, and negative
+- **Natural for decisions**: accept/reject/abstain, buy/hold/sell, agree/disagree/neutral
+- **Self-balancing**: the 0 state acts as a universal screen, preventing pathological lock-in
+- **Z₃ cyclic dynamics**: rock-paper-scissors is the only natural coordination mechanism
+
+## Stats
+
+| Metric | Value |
+|--------|-------|
+| Lines of Rust | 459 |
+| Test count | 19 |
+| Public types | 2 |
+| Public functions | 31 |
+
+## Ecosystem
+
+This crate is part of the **[SuperInstance Ternary Fleet](https://github.com/orgs/SuperInstance/repositories?q=ternary)**:
+
+- **[ternary-core](https://github.com/SuperInstance/ternary-core)** — shared traits and Z₃ arithmetic
+- **[ternary-grid](https://github.com/SuperInstance/ternary-grid)** — spatial grid with {-1, 0, +1} cells
+- **[ternary-graph](https://github.com/SuperInstance/ternary-graph)** — ternary-weighted graph algorithms
+- **[ternary-automata](https://github.com/SuperInstance/ternary-automata)** — three-state cellular automata
+- **[ternary-compiler](https://github.com/SuperInstance/ternary-compiler)** — expression compiler and optimizer
+
+200+ crates. 4,300+ tests. One pattern.
+
+## Research Context
+
+The ternary approach connects to several active research areas:
+- **Ternary Neural Networks** (TNNs): weights constrained to {-1, 0, +1} for efficient inference
+- **Huawei's ternary chip**: 7nm ternary silicon with 60% less power consumption
+- **Active inference**: free energy minimization naturally maps to ternary action selection
+- **Cyclic dominance**: RPS dynamics maintain biodiversity in spatial ecology
+- **Z₃ group theory**: the only algebraic group on three elements is cyclic addition mod 3
+
+## Usage
+
+```toml
+[dependencies]
+ternary-core = "0.1.0"
 ```
 
-## The Deeper Truth
-
-**This crate exists because 240 crates duplicating Z₃ arithmetic is violence.** Every ternary crate needs the same operations: add mod 3, multiply mod 3, clamp to {-1, 0, 1}, compute distances on the Z₃ circle. Without a shared core, each crate implements these slightly differently — one uses `% 3`, another uses `rem_euclid`, a third uses match statements. Bugs multiply. Interfaces diverge.
-
-The deeper insight: Z₃ is a *field*. It has additive inverses (for all elements) and multiplicative inverses (for nonzero elements). This means every linear algebra operation — matrix multiply, determinant, eigenvalue — works over Z₃ exactly as it does over the reals, but with simpler arithmetic. The ternary core makes this algebraic structure explicit and shared.
-
-`TernaryGrid` is the workhorse: a flat `Vec<i8>` with 2D indexing, neighbor counting (Moore and von Neumann neighborhoods), Laplacian computation, histogram, and functional combinators (map, zip_with). Any crate that operates on a 2D ternary field — which is most of them — can use `TernaryGrid` instead of reimplementing the same boilerplate.
-
-`TernaryGraph` similarly provides the basic graph operations that underlie at least 30 crates in the fleet: adjacency, BFS, connectivity, connected components, edge weights. The ternary twist: edges can be *negative* (adversarial), and positive-edge-only connectivity is the default.
-
-**The architectural bet:** by making `ternary-core` the single source of truth for Z₃ arithmetic and common data structures, every crate in the fleet becomes:
-1. **Smaller** — no duplicated boilerplate
-2. **Consistent** — same arithmetic everywhere
-3. **Composable** — grids from one crate feed directly into another
-4. **Testable** — core operations tested once, trusted everywhere
-
-## See Also
-
-This crate is imported by (or should be) every ternary crate. Key dependents:
-
-- **ternary-grid crates** — life, fire, sandpile, ising, morphogenesis, etc.
-- **ternary-graph crates** — network, mesh, pagerank, resilience, etc.
-- **ternary-algebra** — ring, matrix, tensor, codes
-- **ternary-cipher** — cryptography uses Z₃ arithmetic extensively
-- **ternary-counterpoint** — music intervals are Z₃ arithmetic
-- **ternary-crystal** — crystallographic symmetry is Z₃ group theory
-
-## Install
-
-```bash
-cargo add ternary-core
+```rust
+use ternary_core;
 ```
 
 ## License
