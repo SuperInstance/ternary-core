@@ -1,43 +1,39 @@
-# PLUG_AND_PLAY — ternary-core-tmp
+# PLUG_AND_PLAY — Core
 
-> *Integration guide for incorporating ternary-core-tmp into your SuperInstance fleet setup.*
+> Core traits, arithmetic, and shared types for the ternary fleet
 
-## Dependency
+## 🚀 Quick Start
+
+Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ternary_core_tmp = "0.1.0"
+ternary-core = { git = "https://github.com/SuperInstance/ternary-core" }
 ```
 
-## Feature Flags
-
-| Feature | Default | Description |
-|---------|---------|-------------|
-| `std` | yes | Standard library support |
-| `alloc` | yes | Allocator support (for no_std) |
-
-## Integration Patterns
-
-### Basic Usage
+Use in your code:
 
 ```rust
-use ternary_core_tmp::*;
+use ternary_core::{tadd, tsub, tmul, TernaryValue};
+
+let a: i8 = 1;
+let b: i8 = -1;
+let sum = tadd(a, b); // 0
+assert!(a.is_positive());
 ```
 
-### With the Ternary Ecosystem
+## 📚 Available Documentation
 
-This crate works naturally with:
-- [ternary-core](https://github.com/SuperInstance/ternary-core) for Z₃ arithmetic
-- [ternary-types](https://github.com/SuperInstance/ternary-types) for type-level encodings
+| Document | Description |
+|----------|-------------|
+| `docs/FROM_BINARY.md` | Understanding ternary concepts as a binary programmer |
+| `docs/MIGRATION.md` | Version migration guide |
+| `docs/FUTURE-INTEGRATION.md` | Planned features and roadmap |
 
-## Configuration
+## 🔗 Integration
 
-ternary-core-tmp requires minimal configuration. Where configuration is needed:
-- No runtime configuration files needed — pure library
-- Feature gates control optional dependencies
+This crate is part of the [SuperInstance ternary fleet](https://github.com/SuperInstance). It uses the canonical `Ternary` type from `ternary-types` for cross-crate compatibility.
 
-## Compatibility
+## 📄 License
 
-- **Rust edition**: 2021+
-- **Targets**: All tier-1 Rust targets (x86_64, aarch64, ARM Cortex)
-- **no_std**: ✅ Supported
+MIT
