@@ -1,92 +1,81 @@
 # ternary-core
 
-**# ternary-core  Core traits and types shared across the ternary fleet**
+*`#![no_std]` core traits and types for the entire ternary fleet. Z₃ arithmetic, ternary grids, ternary graphs — the foundation everything else builds on.*
 
-[![ternary](https://img.shields.io/badge/ecosystem-ternary-blue)](https://github.com/orgs/SuperInstance/repositories?q=ternary)
-[![tests](https://img.shields.io/badge/tests-19-green)]()
+## Why This Exists
 
-## Overview
-
-# ternary-core
-
-Core traits and types shared across the ternary fleet.
-Every ternary crate should depend on this for common abstractions:
-`TernaryValue`, `TernaryGrid`, `TernaryGraph`, and Z₃ arithmetic.
+Every ternary crate needs the same arithmetic operations, the same data structures, the same clamping logic. Rather than duplicating (and diverging) across 300+ crates, this crate provides the shared foundation. It's `#![no_std]` because ternary logic should run everywhere — from an x86 server to an ESP32 with 279 bytes of ternary lookup table.
 
 ## Architecture
 
-- **`TernaryGrid`** — core data structure
-- **`TernaryGraph`** — core data structure
+### Z₃ Arithmetic
+
+The integers modulo 3 form a finite field. The three elements {-1, 0, +1} with these operations form the mathematical foundation for everything ternary:
+
+```
+Addition (Z₃):        Multiplication (Z₃):
++ | -1  0  1          × | -1  0  1
+--|----------          --|----------
+-1|  1 -1  0          -1|  1  0 -1
+ 0| -1  0  1           0|  0  0  0
+ 1|  0  1 -1           1| -1  0  1
+```
+
+Key functions:
+- **`tadd(a, b)`** — Z₃ addition via modular arithmetic
+- **`tsub(a, b)`** — Z₃ subtraction
+- **`tmul(a, b)`** — Z₃ multiplication
+- **`tneg(a)`** — Additive inverse (flip sign)
+- **`tinv(a)`** — Multiplicative inverse (only defined for ±1)
+- **`tclamp(v)`** — Clamp any i8 to {-1, 0, +1}
+- **`tdist(a, b)`** — Ternary distance (0 if equal, 1 if adjacent, 2 if opposite)
+- **`tdot(a, b)`** — Ternary dot product using Z₃ multiplication
+
+### Data Structures
+
+- **`TernaryGrid`** — 2D grid of trits (rows × cols). Supports get/set, row/column access, neighbor queries (4-connectivity), and mapping functions.
+- **`TernaryGraph`** — Adjacency-list graph with ternary edge weights. Supports BFS, DFS, shortest paths (ternary-weighted), and connected components.
 
 ### Traits
 
-- **`TernaryValue`** — shared behavior contract
-- **`TernaryDynamics`** — shared behavior contract
-- **`TernaryMeasure`** — shared behavior contract
-
-### Key Functions
-
-- `tadd()`
-- `tsub()`
-- `tmul()`
-- `tneg()`
-- `tinv()`
-- `tclamp()`
-- `tdist()`
-- `tdot()`
-- `new()`
-- `get()`
-- ... and 21 more
-
-## Why Ternary?
-
-The balanced ternary system {-1, 0, +1} (also known as Z₃) is the mathematically optimal discrete encoding:
-- **More expressive than binary**: three states capture positive, neutral, and negative
-- **Natural for decisions**: accept/reject/abstain, buy/hold/sell, agree/disagree/neutral
-- **Self-balancing**: the 0 state acts as a universal screen, preventing pathological lock-in
-- **Z₃ cyclic dynamics**: rock-paper-scissors is the only natural coordination mechanism
-
-## Stats
-
-| Metric | Value |
-|--------|-------|
-| Lines of Rust | 459 |
-| Test count | 19 |
-| Public types | 2 |
-| Public functions | 31 |
-
-## Ecosystem
-
-This crate is part of the **[SuperInstance Ternary Fleet](https://github.com/orgs/SuperInstance/repositories?q=ternary)**:
-
-- **[ternary-core](https://github.com/SuperInstance/ternary-core)** — shared traits and Z₃ arithmetic
-- **[ternary-grid](https://github.com/SuperInstance/ternary-grid)** — spatial grid with {-1, 0, +1} cells
-- **[ternary-graph](https://github.com/SuperInstance/ternary-graph)** — ternary-weighted graph algorithms
-- **[ternary-automata](https://github.com/SuperInstance/ternary-automata)** — three-state cellular automata
-- **[ternary-compiler](https://github.com/SuperInstance/ternary-compiler)** — expression compiler and optimizer
-
-200+ crates. 4,300+ tests. One pattern.
-
-## Research Context
-
-The ternary approach connects to several active research areas:
-- **Ternary Neural Networks** (TNNs): weights constrained to {-1, 0, +1} for efficient inference
-- **Huawei's ternary chip**: 7nm ternary silicon with 60% less power consumption
-- **Active inference**: free energy minimization naturally maps to ternary action selection
-- **Cyclic dominance**: RPS dynamics maintain biodiversity in spatial ecology
-- **Z₃ group theory**: the only algebraic group on three elements is cyclic addition mod 3
+- **`TernaryValue`** — Trait for types that can be converted to/from trits. Implement this for your own types to make them work with all ternary operations.
 
 ## Usage
 
-```toml
-[dependencies]
-ternary-core = "0.1.0"
-```
-
 ```rust
-use ternary_core;
+use ternary_core::*;
+
+// Z₃ arithmetic
+assert_eq!(tadd(1, 1), -1);    // 1 + 1 = 2 ≡ -1 (mod 3)
+assert_eq!(tmul(-1, -1), 1);   // (-1) × (-1) = 1
+assert_eq!(tinv(1), Some(-1)); // multiplicative inverse
+
+// Ternary dot product
+let a = &[1, -1, 0, 1];
+let b = &[1, 1, -1, 1];
+let d = tdot(a, b);
+
+// Grid operations
+let mut grid = TernaryGrid::new(3, 3);
+grid.set(1, 1, 1);
+let neighbors = grid.neighbors(1, 1); // 4-connected
+
+// Graph operations
+let mut graph = TernaryGraph::new(4);
+graph.add_edge(0, 1, 1);
+graph.add_edge(1, 2, -1);
+let components = graph.connected_components();
 ```
 
-## License
+## The Deeper Idea
 
-MIT
+`#![no_std]` isn't a gimmick — it's the architectural promise that ternary logic is universal. The same `tadd` that powers a neural network layer on an RTX 4050 also runs on an ESP32 microcontroller with 520KB of RAM. The math doesn't change. The hardware doesn't matter. Ternary is the portable abstraction.
+
+This connects to `ternary-types` (concrete types like TritVec/TritMatrix that depend on std) and `ternary-compiler` (which emits operations defined here).
+
+## Related Crates
+
+- `ternary-types` — Concrete types (TritVec, TritMatrix) that depend on std
+- `ternary-pack` — Packing trits into u32 for efficient storage
+- `ternary-compiler` — Compiles ternary expressions using these operations
+- `ternary-cortex` — Neural network layers built on this foundation
