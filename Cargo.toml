@@ -1,8 +1,7 @@
 [package]
 name = "ternary-core"
 version = "0.1.0"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/casey-digennaro/ternary-core"
 edition = "2021"
-description = "Core traits and types shared across the ternary fleet — TernaryValue, TernaryGrid, TernaryGraph, and common utilities"
-license = "MIT"
-
-[dependencies]
+description = "Core ternary logic types and traits"
